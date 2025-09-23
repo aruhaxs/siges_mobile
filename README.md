@@ -1,16 +1,106 @@
-# apk_sukorame
+🗺️ SIGES Mobile: Sistem Informasi Geografis Kelurahan Sukorame
+Aplikasi mobile berbasis Flutter untuk Sistem Informasi Geografis (SIG) Kelurahan Sukorame, Kota Kediri. Aplikasi ini berfungsi untuk mendata, memetakan, dan memvisualisasikan informasi bangunan di wilayah tersebut, dilengkapi dengan sistem autentikasi pengguna.
 
-A new Flutter project.
+✨ Fitur Utama
+Dashboard Interaktif: Menampilkan ringkasan data bangunan dalam bentuk Pie Chart untuk analisis cepat berdasarkan kategori.
 
-## Getting Started
+Peta Sebaran: Visualisasi lokasi semua bangunan yang terdata dalam peta interaktif menggunakan OpenStreetMap.
 
-This project is a starting point for a Flutter application.
+Manajemen Data (CRUD): Fitur lengkap untuk menambah, melihat daftar, mengedit, dan menghapus data bangunan.
 
-A few resources to get you started if this is your first Flutter project:
+Pencarian & Filter: Memudahkan pencarian data bangunan berdasarkan nama pada halaman daftar dan peta.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Sortir Data: Mengurutkan daftar bangunan berdasarkan nama (A-Z, Z-A) dan memfilter berdasarkan kategori.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Detail Bangunan: Halaman detail untuk setiap bangunan, menampilkan semua informasi dan peta lokasi individual.
+
+Autentikasi Pengguna: Sistem login dan registrasi menggunakan Firebase Authentication untuk mengamankan akses data.
+
+🛠️ Teknologi yang Digunakan
+Framework: Flutter
+
+Bahasa: Dart
+
+Database: Firebase Realtime Database
+
+Autentikasi: Firebase Authentication
+
+Peta: flutter_map (OpenStreetMap)
+
+Chart: fl_chart
+
+Manajemen State: StatefulWidget (setState)
+
+⚙️ Panduan Setup & Instalasi
+Ikuti langkah-langkah ini untuk menjalankan proyek di komputer Anda.
+
+Prasyarat
+Flutter SDK: Pastikan Flutter sudah terinstal. Cek dengan flutter --version.
+
+IDE: Visual Studio Code atau Android Studio.
+
+Akun Firebase: Anda memerlukan akses ke proyek Firebase yang digunakan.
+
+Langkah-langkah Instalasi
+Clone Repository Ini
+
+git clone [https://github.com/aruhaxs/siges_mobile.git](https://github.com/aruhaxs/siges_mobile.git)
+cd siges_mobile
+
+Dapatkan Dependensi Flutter
+
+flutter pub get
+
+Konfigurasi Firebase (Langkah Paling Penting)
+Aplikasi ini membutuhkan koneksi ke proyek Firebase. Gunakan FlutterFire CLI untuk mengaturnya secara otomatis.
+
+# Instal FlutterFire CLI jika belum ada
+dart pub global activate flutterfire_cli
+
+# Login ke akun Firebase Anda
+firebase login
+
+# Hubungkan proyek Flutter dengan proyek Firebase
+flutterfire configure
+
+Saat diminta, pilih proyek Firebase yang sesuai dari daftar yang muncul. Perintah ini akan secara otomatis membuat file lib/firebase_options.dart dan mengunduh google-services.json untuk Android.
+
+Tambahkan SHA-1 Fingerprint untuk Android (Wajib untuk Login)
+Firebase Authentication di Android memerlukan sidik jari SHA-1 dari komputer Anda untuk berfungsi.
+
+Buka Command Prompt (CMD) dan jalankan perintah:
+
+keytool -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+
+Salin nilai SHA-1 yang muncul.
+
+Buka Firebase Console > Project Settings > Your apps, pilih aplikasi Android Anda.
+
+Klik "Add fingerprint" dan tempelkan kode SHA-1 yang sudah Anda salin.
+
+Unduh Ulang google-services.json
+Setelah menambahkan SHA-1, unduh kembali file google-services.json dari halaman yang sama di Firebase Console dan letakkan di folder android/app/, ganti file yang lama jika ada.
+
+▶️ Cara Menjalankan Aplikasi
+Pastikan emulator Anda berjalan atau perangkat fisik terhubung.
+
+Jalankan perintah berikut dari direktori utama proyek:
+
+flutter run
+
+📁 Struktur Proyek
+Proyek ini menggunakan struktur folder berlapis untuk menjaga kerapian kode:
+
+lib/
+├── main.dart         # Titik masuk utama aplikasi
+└── src/              # Folder utama untuk kode sumber
+    └── screens/      # File untuk setiap halaman/tampilan di aplikasi
+        ├── auth_gate.dart
+        ├── login_screen.dart
+        ├── signup_screen.dart
+        ├── main_screen.dart
+        ├── dashboard_screen.dart
+        ├── map_screen.dart
+        ├── manage_data_screen.dart
+        ├── add_edit_screen.dart
+        └── detail_screen.dart
