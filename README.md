@@ -65,22 +65,6 @@ flutterfire configure
 
 Saat diminta, pilih proyek Firebase yang sesuai dari daftar yang muncul. Perintah ini akan secara otomatis membuat file lib/firebase_options.dart dan mengunduh google-services.json untuk Android.
 
-Tambahkan SHA-1 Fingerprint untuk Android (Wajib untuk Login)
-Firebase Authentication di Android memerlukan sidik jari SHA-1 dari komputer Anda untuk berfungsi.
-
-Buka Command Prompt (CMD) dan jalankan perintah:
-
-keytool -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
-
-Salin nilai SHA-1 yang muncul.
-
-Buka Firebase Console > Project Settings > Your apps, pilih aplikasi Android Anda.
-
-Klik "Add fingerprint" dan tempelkan kode SHA-1 yang sudah Anda salin.
-
-Unduh Ulang google-services.json
-Setelah menambahkan SHA-1, unduh kembali file google-services.json dari halaman yang sama di Firebase Console dan letakkan di folder android/app/, ganti file yang lama jika ada.
-
 ▶️ Cara Menjalankan Aplikasi
 Pastikan emulator Anda berjalan atau perangkat fisik terhubung.
 
