@@ -3,7 +3,7 @@ import 'dart:typed_data'; // Diperlukan untuk data gambar
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
-import '../google_drive_service.dart'; // Pastikan path ini benar
+import '../../google_drive_service.dart'; // Pastikan path ini benar
 
 class AddEditScreen extends StatefulWidget {
   final String? buildingKey;

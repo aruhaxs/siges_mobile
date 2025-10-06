@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:apk_sukorame/firebase_options.dart';
-import 'package:apk_sukorame/src/screens/auth_gate.dart';
+import 'package:apk_sukorame/src/auth/auth_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
