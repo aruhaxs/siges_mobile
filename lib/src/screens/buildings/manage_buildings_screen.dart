@@ -5,14 +5,14 @@ import 'package:apk_sukorame/src/screens/buildings/detail_screen.dart';
 
 enum SortOrder { asc, desc }
 
-class ManageDataScreen extends StatefulWidget {
-  const ManageDataScreen({super.key});
+class ManageBuildingsScreen extends StatefulWidget {
+  const ManageBuildingsScreen({super.key});
 
   @override
-  State<ManageDataScreen> createState() => _ManageDataScreenState();
+  State<ManageBuildingsScreen> createState() => _ManageBuildingsScreenState();
 }
 
-class _ManageDataScreenState extends State<ManageDataScreen> {
+class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref('buildings');
   final _searchController = TextEditingController();
 
