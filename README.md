@@ -229,6 +229,6 @@ adb logcat -s flutter
 - Repo: https://github.com/aruhaxs/siges_mobile
 - Untuk masalah akses Firebase/Drive, hubungi pemilik proyek atau admin GCP/Firebase yang mengelola kredensial.
 
-Terakhir: jika tim ingin, saya bisa menambahkan skrip pengujian otomatis (widget tests) untuk alur login dan CRUD dasar. Sampaikan prioritas tes yang dibutuhkan.
+#Selachia
 
 ---
