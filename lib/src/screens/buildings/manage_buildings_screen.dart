@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:apk_sukorame/src/screens/add_edit_screen.dart';
-import 'package:apk_sukorame/src/screens/detail_screen.dart';
+import 'package:apk_sukorame/src/screens/buildings/add_edit_screen.dart';
+import 'package:apk_sukorame/src/screens/buildings/detail_screen.dart';
 
 enum SortOrder { asc, desc }
 
