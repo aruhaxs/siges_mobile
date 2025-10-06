@@ -1,90 +1,234 @@
-🗺️ SIGES Mobile: Sistem Informasi Geografis Kelurahan Sukorame
-Aplikasi mobile berbasis Flutter untuk Sistem Informasi Geografis (SIG) Kelurahan Sukorame, Kota Kediri. Aplikasi ini berfungsi untuk mendata, memetakan, dan memvisualisasikan informasi bangunan di wilayah tersebut, dilengkapi dengan sistem autentikasi pengguna.
+# SIGES Mobile — Panduan Setup & Pengujian
 
-✨ Fitur Utama
-Dashboard Interaktif: Menampilkan ringkasan data bangunan dalam bentuk Pie Chart untuk analisis cepat berdasarkan kategori.
+Ini adalah panduan ringkas dan praktis untuk developer / QA agar dapat men-setup, menjalankan, dan menguji aplikasi mobile SIGES (Flutter) secara cepat.
 
-Peta Sebaran: Visualisasi lokasi semua bangunan yang terdata dalam peta interaktif menggunakan OpenStreetMap.
+Catatan singkat tentang arsitektur:
 
-Manajemen Data (CRUD): Fitur lengkap untuk menambah, melihat daftar, mengedit, dan menghapus data bangunan.
+- Frontend: Flutter (Dart), entrypoint: `lib/main.dart`
+- Backend: Firebase Realtime Database (path utama: `buildings`) dan Firebase Authentication untuk login/signup
+- Integrasi: Google Drive dipakai untuk menyimpan foto (service: `lib/src/google_drive_service.dart`)
+- Peta: `flutter_map` (OpenStreetMap)
 
-Pencarian & Filter: Memudahkan pencarian data bangunan berdasarkan nama pada halaman daftar dan peta.
+---
 
-Sortir Data: Mengurutkan daftar bangunan berdasarkan nama (A-Z, Z-A) dan memfilter berdasarkan kategori.
+## Clone & Multi-environment Setup
 
-Detail Bangunan: Halaman detail untuk setiap bangunan, menampilkan semua informasi dan peta lokasi individual.
+Berikut panduan langkah demi langkah untuk meng-clone repository ini dan menyiapkan lingkungan kerja pada beberapa OS umum.
 
-Autentikasi Pengguna: Sistem login dan registrasi menggunakan Firebase Authentication untuk mengamankan akses data.
+1. Clone repository
 
-🛠️ Teknologi yang Digunakan
-Framework: Flutter
+- Windows (PowerShell):
 
-Bahasa: Dart
-
-Database: Firebase Realtime Database
-
-Autentikasi: Firebase Authentication
-
-Peta: flutter_map (OpenStreetMap)
-
-Chart: fl_chart
-
-Manajemen State: StatefulWidget (setState)
-
-⚙️ Panduan Setup & Instalasi
-Ikuti langkah-langkah ini untuk menjalankan proyek di komputer Anda.
-
-Prasyarat
-Flutter SDK: Pastikan Flutter sudah terinstal. Cek dengan flutter --version.
-
-IDE: Visual Studio Code atau Android Studio.
-
-Akun Firebase: Anda memerlukan akses ke proyek Firebase yang digunakan.
-
-Langkah-langkah Instalasi
-Clone Repository Ini
-
-git clone [https://github.com/aruhaxs/siges_mobile.git](https://github.com/aruhaxs/siges_mobile.git)
+```powershell
+# Clone repo
+git clone https://github.com/aruhaxs/siges_mobile.git
 cd siges_mobile
+```
 
-Dapatkan Dependensi Flutter
+- macOS / Linux (bash):
+
+```bash
+# Clone repo
+git clone https://github.com/aruhaxs/siges_mobile.git
+cd siges_mobile
+```
+
+2. Install dependencies
+
+```powershell
+flutter pub get
+```
+
+3. Platform-specific setup
+
+- Android
+
+  - Pastikan Android SDK & platform-tools terinstal.
+  - Jika build ke perangkat Android, hubungkan device atau jalankan AVD (Android Virtual Device).
+  - Pastikan `android/app/google-services.json` ada jika ingin build release atau test push notifications.
+
+- iOS (macOS saja)
+  - Pastikan Xcode terinstal dan lisensi sudah diaccept.
+  - Pastikan `ios/Runner/GoogleService-Info.plist` ada untuk integrasi Firebase pada iOS.
+  - Jalankan `flutter build ios` atau buka `ios/Runner.xcworkspace` di Xcode untuk debug.
+
+4. Firebase setup
+
+- Jika repo sudah berisi `lib/firebase_options.dart`, aplikasi biasanya sudah terkonfigurasi untuk build dasar.
+- Jika tidak atau ingin mengaitkan ke project Firebase yang berbeda, jalankan:
+
+```powershell
+# Install/aktifkan FlutterFire CLI jika perlu
+dart pub global activate flutterfire_cli
+firebase login
+flutterfire configure
+```
+
+- Pilih project Firebase yang sesuai saat prompt.
+
+## Prasyarat
+
+- Flutter SDK (disarankan versi yang kompatibel dengan SDK >= 3.9)
+
+- image_picker
+
+- flutter_map, latlong2
 
 flutter pub get
 
-Konfigurasi Firebase (Langkah Paling Penting)
-Aplikasi ini membutuhkan koneksi ke proyek Firebase. Gunakan FlutterFire CLI untuk mengaturnya secara otomatis.
+````
 
-# Instal FlutterFire CLI jika belum ada
+---
+
+
+## Konfigurasi Firebase
+
+
+
+Jika repository sudah menyertakan `lib/firebase_options.dart`, Anda bisa langsung menjalankan aplikasi. Jika tidak, gunakan FlutterFire CLI:
+
+```powershell
+# (jika belum terpasang)
 dart pub global activate flutterfire_cli
-
-# Login ke akun Firebase Anda
 firebase login
 
-# Hubungkan proyek Flutter dengan proyek Firebase
 flutterfire configure
 
-Saat diminta, pilih proyek Firebase yang sesuai dari daftar yang muncul. Perintah ini akan secara otomatis membuat file lib/firebase_options.dart dan mengunduh google-services.json untuk Android.
+````
 
-▶️ Cara Menjalankan Aplikasi
-Pastikan emulator Anda berjalan atau perangkat fisik terhubung.
+## Konfigurasi Google Drive (upload/download gambar)
 
-Jalankan perintah berikut dari direktori utama proyek:
+- Di Google Cloud Console untuk project Google API, aktifkan Drive API.
+
+- Untuk testing cepat pada perangkat, aplikasi menggunakan `google_sign_in` (OAuth consent popup). Pastikan akun Google tersedia pada emulator/perangkat.
+
+---
+
+## Menjalankan Aplikasi (Debug)
+
+```powershell
+
+
+flutter analyze
+
+
+
+# Jalankan aplikasi di emulator atau perangkat
 
 flutter run
+```
 
-📁 Struktur Proyek
-Proyek ini menggunakan struktur folder berlapis untuk menjaga kerapian kode:
+Build release
 
-lib/
-├── main.dart         # Titik masuk utama aplikasi
-└── src/              # Folder utama untuk kode sumber
-    └── screens/      # File untuk setiap halaman/tampilan di aplikasi
-        ├── auth_gate.dart
-        ├── login_screen.dart
-        ├── signup_screen.dart
-        ├── main_screen.dart
-        ├── dashboard_screen.dart
-        ├── map_screen.dart
-        ├── manage_data_screen.dart
-        ├── add_edit_screen.dart
-        └── detail_screen.dart
+- Android
+
+```powershell
+flutter build apk --release
+```
+
+- iOS (macOS)
+
+```bash
+flutter build ios --release
+```
+
+---
+
+## Skenario Pengujian (Checklist)
+
+Gunakan langkah di bawah untuk verifikasi fitur utama. Sertakan langkah, ekspektasi hasil, dan cara verifikasi data di Firebase/Google Drive.
+
+1. Autentikasi — Sign Up / Login
+
+   - Langkah: Buka aplikasi, lakukan registrasi (signup) atau login.
+   - Ekspektasi: Setelah berhasil, masuk ke `MainScreen`.
+   - Verifikasi: Firebase Authentication console → user terdaftar.
+
+2. Dashboard & Statistik
+
+   - Langkah: Lihat halaman dashboard (biasanya terletak di menu utama).
+
+   - Ekspektasi: Pie chart menampilkan distribusi kategori bangunan.
+
+3. Peta (Map)
+
+   - Langkah: Buka halaman peta.
+
+   - Ekspektasi: Semua marker bangunan muncul; menekan marker menampilkan info/preview.
+
+   - Tambah Data
+
+     - Langkah: FAB → isi form (nama, kategori, alamat, koordinat: `lat, lng`), upload gambar via gallery
+     - Ekspektasi: Data muncul di list dan peta; jika upload gambar: file dibuat di Google Drive di folder `SIGES/buildings` dan `driveImageId` tersimpan di record RTDB.
+     - Verifikasi: Firebase Realtime Database → cek `buildings/<generated_key>`; Google Drive → cek folder `SIGES/buildings`.
+
+     - Langkah: Tekan tombol delete pada item → konfirmasi
+
+     - Ekspektasi: Record terhapus dari RTDB; jika ada `driveImageId`, file Drive juga dihapus.
+
+4. Detail Bangunan
+
+   - Langkah: Buka detail dari list
+
+   - Ekspektasi: Menampilkan informasi lengkap dan peta embed dengan marker di posisi yang benar.
+
+5. Pencarian, Filter, Sort
+
+   - Langkah: Coba pencarian nama, filter kategori, dan tombol sortir
+
+   - Langkah: Submit form dengan data yang salah (mis. koordinat kosong atau salah format)
+
+6. Offline / Koneksi Jelek
+
+   - Ekspektasi: Aplikasi menangani error jaringan (beberapa fitur yang memerlukan network akan gagal). Periksa pesan kesalahan atau behavior UI.
+
+---
+
+## Test Case Detail (Contoh)
+
+- Test: Upload gambar saat tambah bangunan
+  1. Tekan Add → tap area gambar → pilih foto dari gallery
+  2. Jika belum login ke Google untuk Drive, `google_sign_in` akan meminta akun
+  3. Setelah simpan, periksa `driveImageId` di RTDB
+  4. Buka Google Drive akun yang dipakai → pastikan file ada di `SIGES/buildings`
+
+---
+
+## Debugging & Troubleshooting
+
+- Jika upload gambar gagal: periksa konsol log (adb logcat / flutter run) untuk pesan dari `GoogleDriveService`
+- Pastikan Drive API diaktifkan dan akun Google yang dipakai memiliki akses
+- Jika ada error terkait Firebase auth/database: cek `lib/firebase_options.dart` apakah sesuai dengan project yang dimaksud
+- Analyzer warnings yang mungkin muncul (non-blocking): penggunaan `print` di beberapa service, beberapa API Flutter deprecated notices — bukan blocking.
+
+Contoh perintah cepat untuk diagnosis:
+
+```powershell
+# Jalankan analyzer
+flutter analyze
+
+# Jalankan aplikasi dengan logs verbose
+flutter run -v
+
+# Jalankan logcat (Android) untuk melihat stack traces
+adb logcat -s flutter
+```
+
+---
+
+## Known Issues / Catatan Pengembang
+
+- `GoogleDriveService` menggunakan `google_sign_in` dan membuat client OAuth yang berbasis header akun; pada beberapa konfigurasi emulator, popup OAuth mungkin tidak muncul. Gunakan perangkat fisik jika perlu.
+- Pada awalnya, ada missing method `downloadFile` — sudah ditambahkan di `lib/src/google_drive_service.dart`.
+- Beberapa widget menggunakan properti yang memberi peringatan deprecation (mis. `value` di beberapa form field) — bukan blocking.
+
+---
+
+## Informasi Kontak / Referensi
+
+- Repo: https://github.com/aruhaxs/siges_mobile
+- Untuk masalah akses Firebase/Drive, hubungi pemilik proyek atau admin GCP/Firebase yang mengelola kredensial.
+
+Terakhir: jika tim ingin, saya bisa menambahkan skrip pengujian otomatis (widget tests) untuk alur login dan CRUD dasar. Sampaikan prioritas tes yang dibutuhkan.
+
+---
