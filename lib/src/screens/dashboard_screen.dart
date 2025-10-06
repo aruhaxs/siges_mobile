@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'dart:collection';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
