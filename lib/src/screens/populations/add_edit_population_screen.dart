@@ -81,8 +81,10 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
       };
 
       _dbRef.child(_nikController.text).set(data).then((_) {
+        if (!mounted) return;
         Navigator.of(context).pop();
       }).catchError((error) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal menyimpan data: $error')),
         );
@@ -124,14 +126,38 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
               readOnly: true,
               onTap: _selectDate,
             ),
-             DropdownButtonFormField<String>(
-              value: _jenisKelamin,
-              decoration: const InputDecoration(labelText: 'Jenis Kelamin'),
-              items: ['Laki-laki', 'Perempuan'].map((String value) {
-                return DropdownMenuItem<String>(value: value, child: Text(value));
-              }).toList(),
-              onChanged: (newValue) => setState(() => _jenisKelamin = newValue),
+            
+            const SizedBox(height: 16),
+            const Text('Jenis Kelamin', style: TextStyle(fontSize: 16, color: Colors.black54)),
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('L'),
+                    value: 'Laki-laki',
+                    groupValue: _jenisKelamin,
+                    onChanged: (value) {
+                      setState(() {
+                        _jenisKelamin = value;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('P'),
+                    value: 'Perempuan',
+                    groupValue: _jenisKelamin,
+                    onChanged: (value) {
+                      setState(() {
+                        _jenisKelamin = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
             ),
+
             Row(
               children: [
                 Expanded(child: TextFormField(controller: _rtController, decoration: const InputDecoration(labelText: 'RT'))),
@@ -157,6 +183,7 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
               onPressed: _submitData,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
               ),
               child: const Text('Simpan'),
