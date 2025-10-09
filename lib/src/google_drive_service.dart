@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -10,11 +10,10 @@ class GoogleDriveService {
     scopes: [drive.DriveApi.driveFileScope],
   );
 
-  // Authenticate user and get an HTTP client
   Future<http.Client?> _getAuthenticatedClient() async {
     final account = await _googleSignIn.signIn();
     if (account == null) {
-      print("Sign-in failed or was cancelled by user.");
+      debugPrint("Sign-in failed or was cancelled by user.");
       return null;
     }
     final headers = await account.authHeaders;
@@ -23,16 +22,15 @@ class GoogleDriveService {
       auth.AccessCredentials(
         auth.AccessToken(
           'Bearer',
-          headers['Authorization']!.substring(7), // Remove 'Bearer ' prefix
+          headers['Authorization']!.substring(7),
           DateTime.now().toUtc().add(const Duration(hours: 1)),
         ),
-        null, // No refresh token
+        null,
         _googleSignIn.scopes,
       ),
     );
   }
 
-  // Helper to find or create a folder and return its ID
   Future<String?> _getOrCreateFolder(
     drive.DriveApi driveApi,
     String folderName, {
@@ -59,7 +57,6 @@ class GoogleDriveService {
     }
   }
 
-  // Main method to upload a file
   Future<String?> uploadFile(File file) async {
     final client = await _getAuthenticatedClient();
     if (client == null) return null;
@@ -67,11 +64,9 @@ class GoogleDriveService {
     final driveApi = drive.DriveApi(client);
 
     try {
-      // 1. Get or create the root folder 'SIGES'
       final sigesFolderId = await _getOrCreateFolder(driveApi, 'SIGES');
       if (sigesFolderId == null) return null;
 
-      // 2. Get or create the subfolder 'buildings'
       final buildingsFolderId = await _getOrCreateFolder(
         driveApi,
         'buildings',
@@ -79,29 +74,26 @@ class GoogleDriveService {
       );
       if (buildingsFolderId == null) return null;
 
-      // 3. Prepare the file for upload
       final driveFile = drive.File()
         ..name =
-            'building_${DateTime.now().millisecondsSinceEpoch}.jpg' // Unique name
+            'building_${DateTime.now().millisecondsSinceEpoch}.jpg'
         ..parents = [buildingsFolderId];
 
       final media = drive.Media(file.openRead(), file.lengthSync());
 
-      // 4. Upload the file
       final response = await driveApi.files.create(
         driveFile,
         uploadMedia: media,
       );
       return response.id;
     } catch (e) {
-      print('Error uploading file to Google Drive: $e');
+      debugPrint('Error uploading file to Google Drive: $e');
       return null;
     } finally {
       client.close();
     }
   }
 
-  // Method to delete a file
   Future<void> deleteFile(String fileId) async {
     final client = await _getAuthenticatedClient();
     if (client == null) return;
@@ -109,15 +101,14 @@ class GoogleDriveService {
     final driveApi = drive.DriveApi(client);
     try {
       await driveApi.files.delete(fileId);
-      print('Successfully deleted file with ID: $fileId');
+      debugPrint('Successfully deleted file with ID: $fileId');
     } catch (e) {
-      print('Error deleting file: $e');
+      debugPrint('Error deleting file: $e');
     } finally {
       client.close();
     }
   }
 
-  // Method to download a file's bytes by ID
   Future<Uint8List?> downloadFile(String fileId) async {
     final client = await _getAuthenticatedClient();
     if (client == null) return null;
@@ -138,7 +129,7 @@ class GoogleDriveService {
       }
       return Uint8List.fromList(bytes);
     } catch (e) {
-      print('Error downloading file: $e');
+      debugPrint('Error downloading file: $e');
       return null;
     } finally {
       client.close();

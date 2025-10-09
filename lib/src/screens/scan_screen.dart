@@ -62,7 +62,7 @@ class _ScanScreenState extends State<ScanScreen> {
             height: MediaQuery.of(context).size.width * 0.7,
             decoration: BoxDecoration(
               border: Border.all(
-                color: Colors.white.withOpacity(0.7),
+                color: const Color.fromRGBO(255, 255, 255, 0.7),
                 width: 3,
               ),
               borderRadius: BorderRadius.circular(12),

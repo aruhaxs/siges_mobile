@@ -50,8 +50,11 @@ class _MapScreenState extends State<MapScreen> {
               }
 
               final List<Marker> allMarkers = [];
-              if (snapshot.hasData && !snapshot.hasError && snapshot.data?.snapshot.value != null) {
-                final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+              if (snapshot.hasData &&
+                  !snapshot.hasError &&
+                  snapshot.data?.snapshot.value != null) {
+                final data =
+                    snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
                 data.forEach((key, value) {
                   final lat = value['latitude'] as double? ?? 0.0;
                   final lng = value['longitude'] as double? ?? 0.0;
@@ -77,7 +80,9 @@ class _MapScreenState extends State<MapScreen> {
 
               final filteredMarkers = allMarkers.where((marker) {
                 final tooltip = (marker.child as Tooltip).message ?? '';
-                return tooltip.toLowerCase().contains(_searchQuery.toLowerCase());
+                return tooltip.toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                );
               }).toList();
 
               if (_searchQuery.isNotEmpty && filteredMarkers.length == 1) {
@@ -94,7 +99,8 @@ class _MapScreenState extends State<MapScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.example.apk_sukorame',
                   ),
                   MarkerLayer(markers: filteredMarkers),
@@ -113,10 +119,10 @@ class _MapScreenState extends State<MapScreen> {
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: const Color.fromRGBO(0, 0, 0, 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
-                  )
+                  ),
                 ],
               ),
               child: TextField(

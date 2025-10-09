@@ -7,7 +7,8 @@ class AddEditPopulationScreen extends StatefulWidget {
   const AddEditPopulationScreen({super.key, this.populationNik});
 
   @override
-  State<AddEditPopulationScreen> createState() => _AddEditPopulationScreenState();
+  State<AddEditPopulationScreen> createState() =>
+      _AddEditPopulationScreenState();
 }
 
 class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
@@ -18,11 +19,11 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
   final _rtController = TextEditingController();
   final _rwController = TextEditingController();
   final _pekerjaanController = TextEditingController();
-  
+
   String? _jenisKelamin;
   String? _pendidikan;
   String? _agama;
-  
+
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref('populations');
   bool _isEditMode = false;
 
@@ -80,15 +81,19 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
         'agama': _agama,
       };
 
-      _dbRef.child(_nikController.text).set(data).then((_) {
-        if (!mounted) return;
-        Navigator.of(context).pop();
-      }).catchError((error) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan data: $error')),
-        );
-      });
+      _dbRef
+          .child(_nikController.text)
+          .set(data)
+          .then((_) {
+            if (!mounted) return;
+            Navigator.of(context).pop();
+          })
+          .catchError((error) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Gagal menyimpan data: $error')),
+            );
+          });
     }
   }
 
@@ -96,7 +101,9 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditMode ? 'Edit Data Penduduk' : 'Tambah Data Penduduk'),
+        title: Text(
+          _isEditMode ? 'Edit Data Penduduk' : 'Tambah Data Penduduk',
+        ),
         backgroundColor: Colors.teal,
       ),
       body: Form(
@@ -110,25 +117,36 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
               keyboardType: TextInputType.number,
               readOnly: _isEditMode,
               validator: (value) {
-                if (value == null || value.isEmpty) return 'NIK tidak boleh kosong';
-                if (value.length != 16) return 'NIK harus 16 digit';
+                if (value == null || value.isEmpty) {
+                  return 'NIK tidak boleh kosong';
+                }
+                if (value.length != 16) {
+                  return 'NIK harus 16 digit';
+                }
                 return null;
               },
             ),
             TextFormField(
               controller: _namaController,
               decoration: const InputDecoration(labelText: 'Nama Lengkap'),
-              validator: (value) => value!.isEmpty ? 'Nama tidak boleh kosong' : null,
+              validator: (value) =>
+                  value!.isEmpty ? 'Nama tidak boleh kosong' : null,
             ),
             TextFormField(
               controller: _tglLahirController,
-              decoration: const InputDecoration(labelText: 'Tanggal Lahir', hintText: 'DD-MM-YYYY'),
+              decoration: const InputDecoration(
+                labelText: 'Tanggal Lahir',
+                hintText: 'DD-MM-YYYY',
+              ),
               readOnly: true,
               onTap: _selectDate,
             ),
-            
+
             const SizedBox(height: 16),
-            const Text('Jenis Kelamin', style: TextStyle(fontSize: 16, color: Colors.black54)),
+            const Text(
+              'Jenis Kelamin',
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
             Row(
               children: [
                 Expanded(
@@ -160,22 +178,53 @@ class _AddEditPopulationScreenState extends State<AddEditPopulationScreen> {
 
             Row(
               children: [
-                Expanded(child: TextFormField(controller: _rtController, decoration: const InputDecoration(labelText: 'RT'))),
+                Expanded(
+                  child: TextFormField(
+                    controller: _rtController,
+                    decoration: const InputDecoration(labelText: 'RT'),
+                  ),
+                ),
                 const SizedBox(width: 16),
-                Expanded(child: TextFormField(controller: _rwController, decoration: const InputDecoration(labelText: 'RW'))),
+                Expanded(
+                  child: TextFormField(
+                    controller: _rwController,
+                    decoration: const InputDecoration(labelText: 'RW'),
+                  ),
+                ),
               ],
             ),
-            TextFormField(controller: _pekerjaanController, decoration: const InputDecoration(labelText: 'Pekerjaan')),
+            TextFormField(
+              controller: _pekerjaanController,
+              decoration: const InputDecoration(labelText: 'Pekerjaan'),
+            ),
             DropdownButtonFormField<String>(
-              value: _pendidikan,
-              decoration: const InputDecoration(labelText: 'Pendidikan Terakhir'),
-              items: ['Tidak Sekolah', 'SD', 'SMP', 'SMA/SMK', 'Diploma', 'S1', 'S2', 'S3'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              initialValue: _pendidikan,
+              decoration: const InputDecoration(
+                labelText: 'Pendidikan Terakhir',
+              ),
+              items: [
+                'Tidak Sekolah',
+                'SD',
+                'SMP',
+                'SMA/SMK',
+                'Diploma',
+                'S1',
+                'S2',
+                'S3',
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (val) => setState(() => _pendidikan = val),
             ),
             DropdownButtonFormField<String>(
-              value: _agama,
+              initialValue: _agama,
               decoration: const InputDecoration(labelText: 'Agama'),
-              items: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              items: [
+                'Islam',
+                'Kristen',
+                'Katolik',
+                'Hindu',
+                'Buddha',
+                'Konghucu',
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (val) => setState(() => _agama = val),
             ),
             const SizedBox(height: 32),
