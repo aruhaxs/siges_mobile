@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
-import '../config/supabase_config.dart';
+import 'package:provider/provider.dart';
+import '../services/theme_manager.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,9 +21,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _photoUrl;
   final ImagePicker _picker = ImagePicker();
   supa.SupabaseClient? _supabase;
+  bool _isUploading = false;
 
-  String _role = 'Administrator Kelurahan';
-  String _phoneNumber = '+62 812-3456-7890';
+  String _role = 'Administrator';
+  String _phoneNumber = '+62 858-5623-9499';
   String _location = 'Kelurahan Sukorame, Kota Kediri';
 
   @override
@@ -32,17 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userRef = FirebaseDatabase.instance.ref('users/${_currentUser.uid}');
       _loadUserData();
     }
-    // Initialize Supabase client
-    try {
-      _supabase = supa.Supabase.instance.client;
-    } catch (_) {
-      // If Supabase not initialized via Supabase.initialize elsewhere, init here
-      supa.Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey).then(
-        (_) {
-          _supabase = supa.Supabase.instance.client;
-        },
-      );
-    }
+
+    _supabase = supa.Supabase.instance.client;
   }
 
   void _loadUserData() {
@@ -53,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _role = data['role'] ?? _role;
           _phoneNumber = data['phoneNumber'] ?? _phoneNumber;
           _location = data['location'] ?? _location;
-          _photoUrl = data['photoUrl'] ?? _photoUrl;
+          _photoUrl = data['photoUrl'];
         });
       }
     });
@@ -77,25 +70,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
+    setState(() => _isUploading = true);
+
     final String fileName =
         'profile_${_currentUser?.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
     try {
       final storage = _supabase!.storage.from('Storage');
 
-      final bytes = await file.readAsBytes();
-      // uploadBinary returns a path/string on success; handle errors via exceptions
-      await storage.uploadBinary(fileName, bytes);
+      if (_photoUrl != null) {
+        final oldFileName = Uri.parse(_photoUrl!).pathSegments.last;
+        await storage.remove([oldFileName]);
+      }
 
-      // getPublicUrl typically returns a String URL
+      await storage.upload(fileName, file);
       final publicUrl = storage.getPublicUrl(fileName);
 
-      // Save URL to Firebase Realtime Database under user node
-      if (_userRef != null && _currentUser != null) {
-        await _userRef!.child('photoUrl').set(publicUrl);
+      if (_userRef != null) {
+        await _userRef!.update({'photoUrl': publicUrl});
       }
 
       if (!mounted) return;
-      setState(() => _photoUrl = publicUrl);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Foto profil berhasil diunggah')),
       );
@@ -104,6 +98,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal mengunggah foto: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
     }
   }
 
@@ -114,7 +112,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Icon(icon, color: Colors.grey[600], size: 20),
           const SizedBox(width: 12),
-          Text(text, style: TextStyle(color: Colors.grey[800])),
+          Expanded(
+            child: Text(text, style: TextStyle(color: Colors.grey[800])),
+          ),
         ],
       ),
     );
@@ -122,7 +122,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Mendapatkan data dari Firebase Auth
     String initials = (_currentUser?.displayName?.isNotEmpty == true)
         ? _currentUser!.displayName!
               .split(' ')
@@ -142,11 +141,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profil Saya'),
         backgroundColor: Colors.teal,
       ),
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Kartu Profil Utama
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
@@ -154,7 +152,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             elevation: 4,
             child: Column(
               children: [
-                // Header Hijau
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: const BoxDecoration(
@@ -168,7 +165,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       GestureDetector(
                         onTap: () async {
-                          // Show options: camera or gallery
                           showModalBottomSheet(
                             context: context,
                             builder: (ctx) => SafeArea(
@@ -201,16 +197,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           backgroundImage: _photoUrl != null
                               ? NetworkImage(_photoUrl!)
                               : null,
-                          child: _photoUrl == null
-                              ? Text(
-                                  initials,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    color: Colors.teal,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          child: _isUploading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.teal,
                                 )
-                              : null,
+                              : (_photoUrl == null
+                                    ? Text(
+                                        initials,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          color: Colors.teal,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -236,7 +236,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                // Body Putih
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -265,15 +264,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
               children: [
+                Consumer<ThemeManager>(
+                  builder: (context, themeManager, child) {
+                    return SwitchListTile(
+                      title: const Text('Mode Gelap'),
+                      value: themeManager.themeMode == ThemeMode.dark,
+                      onChanged: (bool value) {
+                        themeManager.toggleTheme(value);
+                      },
+                      secondary: const Icon(
+                        Icons.dark_mode_outlined,
+                        color: Colors.teal,
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+
                 ListTile(
                   leading: const Icon(Icons.history, color: Colors.teal),
                   title: const Text('Login Terakhir'),
@@ -296,10 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 24),
-
-          // Tombol Keluar
           ElevatedButton.icon(
             onPressed: () {
               showDialog(
