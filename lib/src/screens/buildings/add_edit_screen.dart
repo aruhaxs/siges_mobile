@@ -29,14 +29,19 @@ class _AddEditScreenState extends State<AddEditScreen> {
   File? _imageFile;
   String? _driveImageId;
   bool _isUploading = false;
-  
+
   // Variabel baru untuk menampilkan gambar dari Drive
   bool _isLoadingImage = false;
   Uint8List? _driveImageBytes;
 
   // Opsi Kategori dan Referensi Database
   final List<String> _kategoriOptions = [
-    'Pendidikan', 'Kesehatan', 'Tempat Ibadah', 'UMKM', 'Kantor Pemerintahan', 'Lainnya'
+    'Pendidikan',
+    'Kesehatan',
+    'Tempat Ibadah',
+    'UMKM',
+    'Kantor Pemerintahan',
+    'Lainnya',
   ];
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref('buildings');
 
@@ -87,11 +92,15 @@ class _AddEditScreenState extends State<AddEditScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
-        _driveImageBytes = null; // Kosongkan byte gambar lama jika ada gambar baru
+        _driveImageBytes =
+            null; // Kosongkan byte gambar lama jika ada gambar baru
       });
     }
   }
@@ -123,7 +132,7 @@ class _AddEditScreenState extends State<AddEditScreen> {
       setState(() => _imageFile = null);
       return;
     }
-    
+
     if (widget.buildingKey != null && _driveImageId != null) {
       setState(() => _isUploading = true);
       try {
@@ -136,17 +145,25 @@ class _AddEditScreenState extends State<AddEditScreen> {
           });
         }
       } catch (e) {
-        if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus gambar: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Gagal menghapus gambar: $e')));
+        }
       } finally {
-        if (mounted) setState(() => _isUploading = false);
+        if (mounted) {
+          setState(() => _isUploading = false);
+        }
       }
     }
   }
 
   void _submitData() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    setState(() { _isUploading = true; });
+
+    setState(() {
+      _isUploading = true;
+    });
 
     String? oldImageId = _driveImageId;
     String? newImageId = _driveImageId;
@@ -181,13 +198,20 @@ class _AddEditScreenState extends State<AddEditScreen> {
       } else {
         await _dbRef.child(widget.buildingKey!).update(data);
       }
-      
-      if(mounted) Navigator.of(context).pop();
 
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+      }
     } finally {
-      if(mounted) setState(() { _isUploading = false; });
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 
@@ -197,7 +221,11 @@ class _AddEditScreenState extends State<AddEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.buildingKey == null ? 'Tambah Data Bangunan' : 'Edit Data Bangunan'),
+        title: Text(
+          widget.buildingKey == null
+              ? 'Tambah Data Bangunan'
+              : 'Edit Data Bangunan',
+        ),
         backgroundColor: Colors.teal,
       ),
       body: Stack(
@@ -213,7 +241,9 @@ class _AddEditScreenState extends State<AddEditScreen> {
                     alignment: Alignment.center,
                     children: [
                       GestureDetector(
-                        onTap: (_imageFile != null || _driveImageId != null) ? null : _pickImage,
+                        onTap: (_imageFile != null || _driveImageId != null)
+                            ? null
+                            : _pickImage,
                         child: Container(
                           height: 200,
                           width: double.infinity,
@@ -227,18 +257,35 @@ class _AddEditScreenState extends State<AddEditScreen> {
                             child: _imageFile != null
                                 ? Image.file(_imageFile!, fit: BoxFit.cover)
                                 : (_driveImageId != null
-                                    ? (_isLoadingImage
-                                        ? const Center(child: CircularProgressIndicator())
-                                        : (_driveImageBytes != null
-                                            ? Image.memory(_driveImageBytes!, fit: BoxFit.cover)
-                                            : const Center(child: Icon(Icons.error_outline, color: Colors.red, size: 50))))
-                                    : Center(
-                                        child: Icon(Icons.camera_alt, size: 60, color: Colors.grey[700]),
-                                      )),
+                                      ? (_isLoadingImage
+                                            ? const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              )
+                                            : (_driveImageBytes != null
+                                                  ? Image.memory(
+                                                      _driveImageBytes!,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : const Center(
+                                                      child: Icon(
+                                                        Icons.error_outline,
+                                                        color: Colors.red,
+                                                        size: 50,
+                                                      ),
+                                                    )))
+                                      : Center(
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            size: 60,
+                                            color: Colors.grey[700],
+                                          ),
+                                        )),
                           ),
                         ),
                       ),
-                      if ((_imageFile != null || _driveImageId != null) && !_isLoadingImage)
+                      if ((_imageFile != null || _driveImageId != null) &&
+                          !_isLoadingImage)
                         Positioned(
                           top: 8,
                           right: 8,
@@ -250,7 +297,11 @@ class _AddEditScreenState extends State<AddEditScreen> {
                               onTap: _removeImage,
                               child: const Padding(
                                 padding: EdgeInsets.all(6.0),
-                                child: Icon(Icons.delete, color: Colors.white, size: 20),
+                                child: Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
@@ -258,21 +309,29 @@ class _AddEditScreenState extends State<AddEditScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
+
                   TextFormField(
                     controller: _namaController,
-                    decoration: const InputDecoration(labelText: 'Nama Bangunan'),
-                    validator: (value) => value!.isEmpty ? 'Nama tidak boleh kosong' : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Bangunan',
+                    ),
+                    validator: (value) =>
+                        value!.isEmpty ? 'Nama tidak boleh kosong' : null,
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedKategori,
+                    initialValue: _selectedKategori,
                     decoration: const InputDecoration(labelText: 'Kategori'),
                     items: _kategoriOptions.map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
                     }).toList(),
-                    onChanged: (newValue) => setState(() => _selectedKategori = newValue),
-                    validator: (value) => value == null ? 'Kategori harus dipilih' : null,
+                    onChanged: (newValue) =>
+                        setState(() => _selectedKategori = newValue),
+                    validator: (value) =>
+                        value == null ? 'Kategori harus dipilih' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -284,7 +343,8 @@ class _AddEditScreenState extends State<AddEditScreen> {
                   TextFormField(
                     controller: _alamatController,
                     decoration: const InputDecoration(labelText: 'Alamat'),
-                    validator: (value) => value!.isEmpty ? 'Alamat tidak boleh kosong' : null,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Alamat tidak boleh kosong' : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -293,13 +353,24 @@ class _AddEditScreenState extends State<AddEditScreen> {
                       labelText: 'Koordinat',
                       hintText: 'Contoh: -7.803, 111.996',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Koordinat tidak boleh kosong';
+                      if (value == null || value.isEmpty) {
+                        return 'Koordinat tidak boleh kosong';
+                      }
                       final parts = value.split(',');
-                      if (parts.length != 2) return 'Format salah (harus: lat, lng)';
-                      if (double.tryParse(parts[0].trim()) == null) return 'Latitude tidak valid';
-                      if (double.tryParse(parts[1].trim()) == null) return 'Longitude tidak valid';
+                      if (parts.length != 2) {
+                        return 'Format salah (harus: lat, lng)';
+                      }
+                      if (double.tryParse(parts[0].trim()) == null) {
+                        return 'Latitude tidak valid';
+                      }
+                      if (double.tryParse(parts[1].trim()) == null) {
+                        return 'Longitude tidak valid';
+                      }
                       return null;
                     },
                   ),
@@ -319,14 +390,17 @@ class _AddEditScreenState extends State<AddEditScreen> {
           ),
           if (_isUploading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: const Color.fromRGBO(0, 0, 0, 0.5),
               child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                    Text('Memproses...', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    Text(
+                      'Memproses...',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ],
                 ),
               ),

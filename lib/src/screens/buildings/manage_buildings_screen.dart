@@ -25,7 +25,13 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
   final Set<String> _selectedKeys = {};
 
   final List<String> _kategoriOptions = [
-    'Semua', 'Pendidikan', 'Kesehatan', 'Tempat Ibadah', 'UMKM', 'Kantor Pemerintahan', 'Lainnya'
+    'Semua',
+    'Pendidikan',
+    'Kesehatan',
+    'Tempat Ibadah',
+    'UMKM',
+    'Kantor Pemerintahan',
+    'Lainnya',
   ];
 
   @override
@@ -108,23 +114,35 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
                     decoration: InputDecoration(
                       labelText: 'Cari Nama Bangunan',
                       prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 4.0,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedCategory,
+                          initialValue: _selectedCategory,
                           decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10.0,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
                           ),
                           items: _kategoriOptions.map((String category) {
-                            return DropdownMenuItem<String>(value: category, child: Text(category));
+                            return DropdownMenuItem<String>(
+                              value: category,
+                              child: Text(category),
+                            );
                           }).toList(),
                           onChanged: (String? newValue) {
                             setState(() => _selectedCategory = newValue!);
@@ -133,11 +151,19 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
                       ),
                       const SizedBox(width: 8),
                       IconButton(
-                        icon: Icon(_sortOrder == SortOrder.asc ? Icons.arrow_downward : Icons.arrow_upward),
-                        tooltip: _sortOrder == SortOrder.asc ? 'Sortir Z-A' : 'Sortir A-Z',
+                        icon: Icon(
+                          _sortOrder == SortOrder.asc
+                              ? Icons.arrow_downward
+                              : Icons.arrow_upward,
+                        ),
+                        tooltip: _sortOrder == SortOrder.asc
+                            ? 'Sortir Z-A'
+                            : 'Sortir A-Z',
                         onPressed: () {
                           setState(() {
-                            _sortOrder = _sortOrder == SortOrder.asc ? SortOrder.desc : SortOrder.asc;
+                            _sortOrder = _sortOrder == SortOrder.asc
+                                ? SortOrder.desc
+                                : SortOrder.asc;
                           });
                         },
                       ),
@@ -154,7 +180,8 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
+                if (!snapshot.hasData ||
+                    snapshot.data?.snapshot.value == null) {
                   return const Center(child: Text('Belum ada data.'));
                 }
                 final Map data = snapshot.data!.snapshot.value as Map;
@@ -163,16 +190,25 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
                   items.add({"key": key, ...value});
                 });
                 final processedItems = items.where((item) {
-                  final namaBangunan = (item['nama_bangunan'] as String?)?.toLowerCase() ?? '';
+                  final namaBangunan =
+                      (item['nama_bangunan'] as String?)?.toLowerCase() ?? '';
                   final kategori = item['kategori'] as String? ?? '';
-                  final matchesCategory = _selectedCategory == 'Semua' || kategori == _selectedCategory;
-                  final matchesSearch = namaBangunan.contains(_searchQuery.toLowerCase());
+                  final matchesCategory =
+                      _selectedCategory == 'Semua' ||
+                      kategori == _selectedCategory;
+                  final matchesSearch = namaBangunan.contains(
+                    _searchQuery.toLowerCase(),
+                  );
                   return matchesCategory && matchesSearch;
                 }).toList();
                 processedItems.sort((a, b) {
-                  final namaA = (a['nama_bangunan'] as String?)?.toLowerCase() ?? '';
-                  final namaB = (b['nama_bangunan'] as String?)?.toLowerCase() ?? '';
-                  return _sortOrder == SortOrder.asc ? namaA.compareTo(namaB) : namaB.compareTo(namaA);
+                  final namaA =
+                      (a['nama_bangunan'] as String?)?.toLowerCase() ?? '';
+                  final namaB =
+                      (b['nama_bangunan'] as String?)?.toLowerCase() ?? '';
+                  return _sortOrder == SortOrder.asc
+                      ? namaA.compareTo(namaB)
+                      : namaB.compareTo(namaA);
                 });
                 if (processedItems.isEmpty) {
                   return const Center(child: Text('Data tidak ditemukan.'));
@@ -187,15 +223,22 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
 
                     return Card(
                       color: isSelected ? Colors.blue.shade100 : null,
-                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       child: InkWell(
                         onTap: () {
                           if (_isSelectionMode) {
                             _toggleSelection(key);
                           } else {
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) => DetailScreen(building: building),
-                            ));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    DetailScreen(building: building),
+                              ),
+                            );
                           }
                         },
                         onLongPress: () {
@@ -210,24 +253,40 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
                           leading: _isSelectionMode
                               ? Checkbox(
                                   value: isSelected,
-                                  onChanged: (bool? value) => _toggleSelection(key),
+                                  onChanged: (bool? value) =>
+                                      _toggleSelection(key),
                                 )
                               : null,
-                          title: Text(building['nama_bangunan'] ?? 'Tanpa Nama'),
-                          subtitle: Text(building['kategori'] ?? 'Tanpa Kategori'),
+                          title: Text(
+                            building['nama_bangunan'] ?? 'Tanpa Nama',
+                          ),
+                          subtitle: Text(
+                            building['kategori'] ?? 'Tanpa Kategori',
+                          ),
                           trailing: !_isSelectionMode
                               ? Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () => Navigator.push(context, MaterialPageRoute(
-                                        builder: (context) => AddEditScreen(buildingKey: key),
-                                      )),
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddEditScreen(buildingKey: key),
+                                        ),
+                                      ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => _showSingleDeleteDialog(key),
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () =>
+                                          _showSingleDeleteDialog(key),
                                     ),
                                   ],
                                 )
@@ -244,9 +303,10 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
       ),
       floatingActionButton: !_isSelectionMode
           ? FloatingActionButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(
-                builder: (context) => const AddEditScreen(),
-              )),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddEditScreen()),
+              ),
               backgroundColor: Colors.teal,
               child: const Icon(Icons.add),
             )
@@ -267,7 +327,9 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus Data'),
-        content: Text('Apakah Anda yakin ingin menghapus ${keysToDelete.length} data ini?'),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus ${keysToDelete.length} data ini?',
+        ),
         actions: <Widget>[
           TextButton(
             child: const Text('Batal'),
@@ -288,7 +350,7 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
                 _exitSelectionMode();
               }
             },
-          )
+          ),
         ],
       ),
     );

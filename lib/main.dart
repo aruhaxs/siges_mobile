@@ -5,12 +5,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:apk_sukorame/firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:apk_sukorame/src/auth/auth_gate.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'src/config/supabase_config.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("Menangani notifikasi background: ${message.messageId}");
+  debugPrint("Menangani notifikasi background: ${message.messageId}");
 }
 
 // Definisikan channel notifikasi secara global agar ID-nya konsisten
@@ -21,26 +24,35 @@ const AndroidNotificationChannel channel = AndroidNotificationChannel(
   importance: Importance.max, // Atur ke prioritas tertinggi
 );
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Buat channel notifikasi di sistem Android
+  // Initialize Supabase
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+
+  // Initialize locale data used by intl (e.g., DateFormat with 'id_ID')
+  await initializeDateFormatting('id_ID', null);
+
   await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >()
       ?.createNotificationChannel(channel);
 
-  // Inisialisasi plugin notifikasi lokal
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // Jalankan setup FCM lainnya
   await _initializeFCM();
-  
+
   runApp(const MyApp());
 }
 
@@ -49,14 +61,12 @@ Future<void> _initializeFCM() async {
 
   await messaging.requestPermission();
   final String? fcmToken = await messaging.getToken();
-  print("FCM Token: $fcmToken");
+  debugPrint("FCM Token: $fcmToken");
 
-  // Listener untuk notifikasi saat aplikasi terbuka (foreground)
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
-    // Jika notifikasi ada, tampilkan secara manual menggunakan flutter_local_notifications
     if (notification != null && android != null) {
       flutterLocalNotificationsPlugin.show(
         notification.hashCode,
@@ -72,7 +82,9 @@ Future<void> _initializeFCM() async {
             priority: Priority.high,
           ),
         ),
-        payload: jsonEncode(message.toMap()), // Mengirim data pesan jika diperlukan
+        payload: jsonEncode(
+          message.toMap(),
+        ), // Mengirim data pesan jika diperlukan
       );
     }
   });
