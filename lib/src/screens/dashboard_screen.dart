@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:apk_sukorame/src/screens/scan_screen.dart';
 import 'package:apk_sukorame/src/screens/profile_screen.dart';
+import 'package:apk_sukorame/src/screens/news_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -40,7 +41,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  // --- FUNGSI BARU UNTUK MENAMPILKAN DIALOG HASIL SCAN ---
   void _showScanResultDialog(String result) {
     final bool isUrl = Uri.tryParse(result)?.isAbsolute ?? false;
 
@@ -180,9 +180,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'SIGES',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
-        foregroundColor: Colors.black,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle, size: 28),
@@ -230,6 +230,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             ListTile(
+              leading: const Icon(Icons.newspaper),
+              title: const Text('Berita Terkini'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WebViewScreen(
+                      url: 'https://radarkediri.jawapos.com/tag/sukorame#google_vignette',
+                      title: 'Berita Terkini',
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.qr_code_scanner),
               title: const Text('Scan Barcode'),
               onTap: () {
@@ -262,7 +278,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -344,7 +360,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasData &&
                         snapshot.data?.snapshot.value != null) {
-                      return Text('${snapshot.data!.snapshot.children.length}');
+                      return Text('${(snapshot.data!.snapshot.value as Map).length}');
                     }
                     return const Text('0');
                   },
@@ -359,7 +375,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasData &&
                         snapshot.data?.snapshot.value != null) {
-                      return Text('${snapshot.data!.snapshot.children.length}');
+                      return Text('${(snapshot.data!.snapshot.value as Map).length}');
                     }
                     return const Text('0');
                   },
@@ -369,19 +385,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.map,
                 color: Colors.orange,
                 title: 'Luas Wilayah',
-                valueWidget: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    //   color: Colors.black87,
-                    ),
-                    children: [
-                      TextSpan(text: '8.2'),
-                      TextSpan(text: ' km²', style: TextStyle(fontSize: 14)),
-                    ],
-                  ),
-                ),
+                valueWidget: const Text('3.85 km²'),
               ),
               _buildStatCard(
                 icon: Icons.show_chart,
