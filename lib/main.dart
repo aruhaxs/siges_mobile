@@ -8,7 +8,9 @@ import 'package:apk_sukorame/firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:apk_sukorame/src/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 import 'src/config/supabase_config.dart';
+import 'src/services/theme_manager.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -16,12 +18,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("Menangani notifikasi background: ${message.messageId}");
 }
 
-// Definisikan channel notifikasi secara global agar ID-nya konsisten
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
-  'high_importance_channel', // ID Channel
-  'Notifikasi Penting', // Nama Channel
+  'high_importance_channel',
+  'Notifikasi Penting',
   description: 'Channel ini digunakan untuk notifikasi prioritas tinggi.',
-  importance: Importance.max, // Atur ke prioritas tertinggi
+  importance: Importance.max,
 );
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -31,17 +32,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Initialize Supabase
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
-
-  // Initialize locale data used by intl (e.g., DateFormat with 'id_ID')
   await initializeDateFormatting('id_ID', null);
 
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin
-      >()
+          AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
   const AndroidInitializationSettings initializationSettingsAndroid =
@@ -50,42 +46,36 @@ Future<void> main() async {
     android: initializationSettingsAndroid,
   );
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
   await _initializeFCM();
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeManager(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 Future<void> _initializeFCM() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
-
   await messaging.requestPermission();
   final String? fcmToken = await messaging.getToken();
   debugPrint("FCM Token: $fcmToken");
-
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
-
     if (notification != null && android != null) {
       flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id, // Gunakan ID channel yang sudah kita buat
-            channel.name,
-            channelDescription: channel.description,
-            icon: '@mipmap/ic_launcher',
-            importance: Importance.max,
-            priority: Priority.high,
-          ),
-        ),
-        payload: jsonEncode(
-          message.toMap(),
-        ), // Mengirim data pesan jika diperlukan
-      );
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+              android: AndroidNotificationDetails(channel.id, channel.name,
+                  channelDescription: channel.description,
+                  icon: '@mipmap/ic_launcher',
+                  importance: Importance.max,
+                  priority: Priority.high)),
+          payload: jsonEncode(message.toMap()));
     }
   });
 }
@@ -95,14 +85,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'DeSu',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const AuthGate(),
+    return Consumer<ThemeManager>(
+      builder: (context, themeManager, child) {
+        return MaterialApp(
+          title: 'DeSu',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.teal,
+            brightness: Brightness.light,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+          ),
+          darkTheme: ThemeData(
+            primarySwatch: Colors.teal,
+            brightness: Brightness.dark,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+          ),
+          themeMode: themeManager.themeMode,
+          home: const AuthGate(),
+        );
+      },
     );
   }
 }
+

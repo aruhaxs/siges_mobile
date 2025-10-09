@@ -20,7 +20,6 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
   String _selectedCategory = 'Semua';
   SortOrder _sortOrder = SortOrder.asc;
 
-  // --- State baru untuk multi-delete ---
   bool _isSelectionMode = false;
   final Set<String> _selectedKeys = {};
 
@@ -50,7 +49,6 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
     super.dispose();
   }
 
-  // --- Fungsi baru untuk mengelola state seleksi ---
   void _toggleSelection(String key) {
     setState(() {
       if (_selectedKeys.contains(key)) {
@@ -58,7 +56,6 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
       } else {
         _selectedKeys.add(key);
       }
-      // Keluar dari mode seleksi jika tidak ada item yang dipilih
       if (_selectedKeys.isEmpty) {
         _isSelectionMode = false;
       }
@@ -72,7 +69,6 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
     });
   }
 
-  // --- AppBar normal dan AppBar untuk mode seleksi ---
   AppBar _buildNormalAppBar() {
     return AppBar(
       title: const Text('Kelola Data Bangunan'),
@@ -103,7 +99,6 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
       appBar: _isSelectionMode ? _buildSelectionAppBar() : _buildNormalAppBar(),
       body: Column(
         children: [
-          // Filter dan Search UI (tidak berubah)
           if (!_isSelectionMode)
             Column(
               children: [
@@ -176,7 +171,6 @@ class _ManageBuildingsScreenState extends State<ManageBuildingsScreen> {
             child: StreamBuilder(
               stream: _dbRef.onValue,
               builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
-                // ... (logika StreamBuilder tetap sama sampai return ListView.builder)
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }

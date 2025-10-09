@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'dart:typed_data'; // Diperlukan untuk data gambar
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../google_drive_service.dart'; // Pastikan path ini benar
+import '../../google_drive_service.dart';
 
 class AddEditScreen extends StatefulWidget {
   final String? buildingKey;
@@ -15,26 +15,24 @@ class AddEditScreen extends StatefulWidget {
 }
 
 class _AddEditScreenState extends State<AddEditScreen> {
-  // Kunci dan Controller untuk Form
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
   final _alamatController = TextEditingController();
   final _koordinatController = TextEditingController();
   final _deskripsiController = TextEditingController();
   String? _selectedKategori;
+  List<String> _nameSuggestions = [];
+  List<String> _alamatSuggestions = [];
 
-  // Variabel state untuk penanganan gambar
   final GoogleDriveService _driveService = GoogleDriveService();
   final ImagePicker _picker = ImagePicker();
   File? _imageFile;
   String? _driveImageId;
   bool _isUploading = false;
 
-  // Variabel baru untuk menampilkan gambar dari Drive
   bool _isLoadingImage = false;
   Uint8List? _driveImageBytes;
 
-  // Opsi Kategori dan Referensi Database
   final List<String> _kategoriOptions = [
     'Pendidikan',
     'Kesehatan',
@@ -51,6 +49,31 @@ class _AddEditScreenState extends State<AddEditScreen> {
     if (widget.buildingKey != null) {
       _loadBuildingData();
     }
+    _loadSuggestions();
+  }
+
+  Future<void> _loadSuggestions() async {
+    try {
+      final snapshot = await _dbRef.get();
+      if (snapshot.exists && mounted) {
+        final data = snapshot.value as Map;
+        final names = <String>{};
+        final addrs = <String>{};
+        data.forEach((key, value) {
+          try {
+            final row = value as Map;
+            final n = row['nama_bangunan'];
+            final a = row['alamat'];
+            if (n is String && n.isNotEmpty) names.add(n);
+            if (a is String && a.isNotEmpty) addrs.add(a);
+          } catch (_) {}
+        });
+        setState(() {
+          _nameSuggestions = names.toList();
+          _alamatSuggestions = addrs.toList();
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -61,8 +84,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
     _deskripsiController.dispose();
     super.dispose();
   }
-
-  // --- FUNGSI LOGIKA ---
 
   void _loadBuildingData() async {
     DataSnapshot snapshot = await _dbRef.child(widget.buildingKey!).get();
@@ -77,7 +98,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
         _driveImageId = data['driveImageId'];
       });
 
-      // Logika untuk mengunduh gambar dari Drive jika ID-nya ada
       if (_driveImageId != null) {
         setState(() => _isLoadingImage = true);
         final bytes = await _driveService.downloadFile(_driveImageId!);
@@ -99,8 +119,7 @@ class _AddEditScreenState extends State<AddEditScreen> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
-        _driveImageBytes =
-            null; // Kosongkan byte gambar lama jika ada gambar baru
+        _driveImageBytes = null;
       });
     }
   }
@@ -141,7 +160,7 @@ class _AddEditScreenState extends State<AddEditScreen> {
         if (mounted) {
           setState(() {
             _driveImageId = null;
-            _driveImageBytes = null; // Hapus juga data byte gambarnya
+            _driveImageBytes = null;
           });
         }
       } catch (e) {
@@ -214,8 +233,6 @@ class _AddEditScreenState extends State<AddEditScreen> {
       }
     }
   }
-
-  // --- FUNGSI BUILD UI ---
 
   @override
   Widget build(BuildContext context) {
@@ -310,13 +327,37 @@ class _AddEditScreenState extends State<AddEditScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  TextFormField(
-                    controller: _namaController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nama Bangunan',
-                    ),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Nama tidak boleh kosong' : null,
+                  Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty)
+                        return const Iterable<String>.empty();
+                      return _nameSuggestions.where(
+                        (opt) => opt.toLowerCase().contains(
+                          textEditingValue.text.toLowerCase(),
+                        ),
+                      );
+                    },
+                    fieldViewBuilder:
+                        (context, controller, focusNode, onFieldSubmitted) {
+                          controller.text = _namaController.text;
+                          controller.selection = TextSelection.fromPosition(
+                            TextPosition(offset: controller.text.length),
+                          );
+                          return TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Nama Bangunan',
+                            ),
+                            validator: (value) => value!.isEmpty
+                                ? 'Nama tidak boleh kosong'
+                                : null,
+                            onChanged: (v) => _namaController.text = v,
+                          );
+                        },
+                    onSelected: (selection) {
+                      setState(() => _namaController.text = selection);
+                    },
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
@@ -340,11 +381,37 @@ class _AddEditScreenState extends State<AddEditScreen> {
                     maxLines: 3,
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _alamatController,
-                    decoration: const InputDecoration(labelText: 'Alamat'),
-                    validator: (value) =>
-                        value!.isEmpty ? 'Alamat tidak boleh kosong' : null,
+                  Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty)
+                        return const Iterable<String>.empty();
+                      return _alamatSuggestions.where(
+                        (opt) => opt.toLowerCase().contains(
+                          textEditingValue.text.toLowerCase(),
+                        ),
+                      );
+                    },
+                    fieldViewBuilder:
+                        (context, controller, focusNode, onFieldSubmitted) {
+                          controller.text = _alamatController.text;
+                          controller.selection = TextSelection.fromPosition(
+                            TextPosition(offset: controller.text.length),
+                          );
+                          return TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Alamat',
+                            ),
+                            validator: (value) => value!.isEmpty
+                                ? 'Alamat tidak boleh kosong'
+                                : null,
+                            onChanged: (v) => _alamatController.text = v,
+                          );
+                        },
+                    onSelected: (selection) {
+                      setState(() => _alamatController.text = selection);
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(

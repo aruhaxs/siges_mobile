@@ -97,7 +97,6 @@ class _ManagePopulationsScreenState extends State<ManagePopulationsScreen> {
             child: StreamBuilder(
               stream: _dbRef.onValue,
               builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
-                // ... (logika StreamBuilder tetap sama sampai return ListView.builder)
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }

@@ -151,13 +151,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(icon, size: 32, color: color),
             const SizedBox(height: 10),
-            Text(title, style: const TextStyle(color: Colors.grey)),
+            Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
             const SizedBox(height: 4),
             DefaultTextStyle(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               child: valueWidget,
             ),
@@ -369,7 +374,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                    //   color: Colors.black87,
                     ),
                     children: [
                       TextSpan(text: '8.2'),
