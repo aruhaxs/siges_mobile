@@ -7,6 +7,7 @@ import 'package:apk_sukorame/src/screens/scan_screen.dart';
 import 'package:apk_sukorame/src/screens/profile_screen.dart';
 import 'package:apk_sukorame/src/screens/news_screen.dart';
 import 'package:apk_sukorame/src/screens/gallery_screen.dart';
+import 'package:apk_sukorame/src/screens/event_list_screen.dart'; // <-- PERUBAHAN 1: Import file yang benar
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -254,6 +255,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'Berita Terkini',
                     ),
                   ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event),
+              title: const Text('Jadwal Kegiatan'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  // <-- PERUBAHAN 2: Arahkan ke EventListScreen, bukan EventScreen
+                  MaterialPageRoute(builder: (context) => const EventListScreen()),
                 );
               },
             ),
