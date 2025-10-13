@@ -25,14 +25,21 @@ git clone https://github.com/aruhaxs/siges_mobile.git
 cd siges_mobile
 ```
 
+- macOS / Linux (bash):
+
 ```bash
 # Clone repo
+git clone https://github.com/aruhaxs/siges_mobile.git
 cd siges_mobile
 ```
 
 2. Install dependencies
 
 ```powershell
+flutter pub get
+```
+
+3. Platform-specific setup
 
 - Android
 
