@@ -6,6 +6,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:apk_sukorame/src/screens/scan_screen.dart';
 import 'package:apk_sukorame/src/screens/profile_screen.dart';
 import 'package:apk_sukorame/src/screens/news_screen.dart';
+import 'package:apk_sukorame/src/screens/gallery_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -228,6 +229,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 'Menu Utama',
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.collections),
+              title: const Text('Galeri Sukorame'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GalleryScreen()),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.newspaper),
