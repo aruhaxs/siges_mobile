@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:apk_sukorame/src/admin/screens/event_list_screen.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:apk_sukorame/src/admin/models/event_model.dart';
-import 'package:apk_sukorame/src/admin/screens/event_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -77,15 +78,23 @@ Future<void> main() async {
   );
 }
 
+
 void _handleNotificationClick(Map<String, dynamic> data) {
   debugPrint("Data payload diterima: $data");
   if (data['eventType'] == 'jadwal_kegiatan') {
     final event = Event.fromFcmPayload(data);
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (context) => EventScreen(event: event),
-      ),
-    );
+
+    final DatabaseReference eventsRef = FirebaseDatabase.instance.ref("events");
+    eventsRef.push().set(event.toJson()).then((_) {
+      debugPrint("Event berhasil disimpan ke database.");
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (context) => const EventListScreen(),
+        ),
+      );
+    }).catchError((error) {
+      debugPrint("Gagal menyimpan event: $error");
+    });
   }
 }
 
