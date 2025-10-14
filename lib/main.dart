@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:apk_sukorame/src/models/event_model.dart';
-import 'package:apk_sukorame/src/screens/event_screen.dart';
+import 'package:apk_sukorame/src/admin/models/event_model.dart';
+import 'package:apk_sukorame/src/admin/screens/event_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,7 +11,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:apk_sukorame/src/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'src/config/supabase_config.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'src/admin/config/supabase_config.dart';
 import 'src/services/theme_manager.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -35,6 +36,11 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
+  );
+
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
   await initializeDateFormatting('id_ID', null);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:apk_sukorame/src/screens/populations/add_edit_population_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/populations/add_edit_population_screen.dart';
 
 class ManagePopulationsScreen extends StatefulWidget {
   const ManagePopulationsScreen({super.key});

@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:apk_sukorame/src/screens/scan_screen.dart';
-import 'package:apk_sukorame/src/screens/profile_screen.dart';
-import 'package:apk_sukorame/src/screens/news_screen.dart';
-import 'package:apk_sukorame/src/screens/gallery_screen.dart';
-import 'package:apk_sukorame/src/screens/event_list_screen.dart'; // <-- PERUBAHAN 1: Import file yang benar
+import 'package:apk_sukorame/src/admin/screens/scan_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/profile_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/news_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/gallery_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/event_list_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/add_admin_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -113,29 +114,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _showLogoutConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Konfirmasi Log Out'),
-        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              FirebaseAuth.instance.signOut();
-            },
-            child: const Text('Log Out', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatCard({
     required IconData icon,
     required Color color,
@@ -188,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle, size: 28),
-            onSelected: (value) {
+            onSelected: (value) async { // ## JADIKAN ASYNC ##
               if (value == 'profil') {
                 Navigator.push(
                   context,
@@ -196,8 +174,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     builder: (context) => const ProfileScreen(),
                   ),
                 );
-              } else if (value == 'logout') {
-                _showLogoutConfirmationDialog();
+              } else if (value == 'add_admin') {
+                // ## PERUBAHAN LOGIKA NAVIGASI ##
+                final result = await Navigator.push<String>(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddAdminScreen()),
+                );
+
+                if (result != null && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -208,11 +199,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: Text('Profil'),
                 ),
               ),
+              // ## PERUBAHAN ITEM MENU ##
               const PopupMenuItem<String>(
-                value: 'logout',
+                value: 'add_admin',
                 child: ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text('Log Out'),
+                  leading: Icon(Icons.person_add_alt_1),
+                  title: Text('Tambah Akun'),
                 ),
               ),
             ],
@@ -265,7 +257,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  // <-- PERUBAHAN 2: Arahkan ke EventListScreen, bukan EventScreen
                   MaterialPageRoute(builder: (context) => const EventListScreen()),
                 );
               },
@@ -296,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Aplikasi SIG Sukorame v1.0')),
+                  const SnackBar(content: Text('SIGES Versi 2.1')),
                 );
               },
             ),
@@ -332,7 +323,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Text(
                           currentUser?.displayName ??
                               currentUser?.email ??
-                              'Administrator SIG Sukorame',
+                              'Administrator SIGES',
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white70,

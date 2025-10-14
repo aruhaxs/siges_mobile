@@ -32,20 +32,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         User? user = userCredential.user;
         if (user != null) {
-          // 1. Update display name di Firebase Auth
           await user.updateDisplayName(_usernameController.text.trim());
 
-          // 2. Buat entri di Realtime Database di node 'users'
           await _dbRef.child('users').child(user.uid).set({
             'username': _usernameController.text.trim(),
             'email': _emailController.text.trim(),
           });
 
-          // Send email verification
           await user.sendEmailVerification();
 
           if (mounted) {
-            // Show success dialog
             await showDialog(
               context: context,
               builder: (context) => AlertDialog(
@@ -57,7 +53,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      // Navigate to login screen
                       Navigator.of(context)
                         ..pop() // Close dialog
                         ..pushReplacement(

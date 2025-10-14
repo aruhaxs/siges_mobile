@@ -6,7 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 import 'package:provider/provider.dart';
-import '../services/theme_manager.dart';
+import '../../services/theme_manager.dart';
+import '../../auth/auth_gate.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,8 +31,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    if (_currentUser != null) {
-      _userRef = FirebaseDatabase.instance.ref('users/${_currentUser.uid}');
+    final user = _currentUser;
+
+    if (user != null) {
+      _userRef = FirebaseDatabase.instance.ref('users/${user.uid}');
       _loadUserData();
     }
 
@@ -124,10 +127,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     String initials = (_currentUser?.displayName?.isNotEmpty == true)
         ? _currentUser!.displayName!
-              .split(' ')
-              .map((e) => e.substring(0, 1))
-              .take(2)
-              .join()
+            .split(' ')
+            .map((e) => e.substring(0, 1))
+            .take(2)
+            .join()
         : (_currentUser?.email?.substring(0, 2).toUpperCase() ?? '??');
     String joinDate = (_currentUser?.metadata.creationTime != null)
         ? 'Bergabung sejak ${DateFormat('d MMMM yyyy', 'id_ID').format(_currentUser!.metadata.creationTime!)}'
@@ -202,15 +205,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   color: Colors.teal,
                                 )
                               : (_photoUrl == null
-                                    ? Text(
-                                        initials,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          color: Colors.teal,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null),
+                                  ? Text(
+                                      initials,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        color: Colors.teal,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -287,7 +290,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
-
                 ListTile(
                   leading: const Icon(Icons.history, color: Colors.teal),
                   title: const Text('Login Terakhir'),
@@ -326,9 +328,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: const Text('Batal'),
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        FirebaseAuth.instance.signOut();
+                      // ## PERBAIKAN LOGIKA LOGOUT DI SINI ##
+                      onPressed: () async {
+                        // 1. Lakukan sign out dari Firebase
+                        await FirebaseAuth.instance.signOut();
+
+                        // 2. Navigasi paksa kembali ke AuthGate dan hapus semua halaman sebelumnya
+                        if (mounted) {
+                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const AuthGate()),
+                            (Route<dynamic> route) => false,
+                          );
+                        }
                       },
                       child: const Text(
                         'Log Out',

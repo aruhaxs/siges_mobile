@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:apk_sukorame/src/screens/dashboard_screen.dart';
-import 'package:apk_sukorame/src/screens/map_screen.dart';
-import 'package:apk_sukorame/src/screens/buildings/manage_buildings_screen.dart';
-import 'package:apk_sukorame/src/screens/populations/manage_populations_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/dashboard_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/map_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/buildings/manage_buildings_screen.dart';
+import 'package:apk_sukorame/src/admin/screens/populations/manage_populations_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
