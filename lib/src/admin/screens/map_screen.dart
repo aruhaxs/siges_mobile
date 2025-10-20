@@ -1,8 +1,38 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter/foundation.dart';
+
+List<LatLng> _parseGeoJson(String jsonString) {
+  final Map<String, dynamic> data = json.decode(jsonString);
+  final List<LatLng> points = [];
+
+  if (data['features'] != null && data['features'] is List) {
+    final List features = data['features'];
+    if (features.isNotEmpty) {
+      final Map<String, dynamic> feature = features[0];
+      final Map<String, dynamic> geometry = feature['geometry'];
+      final String geometryType = geometry['type'];
+
+      if (geometryType == 'Polygon') {
+        final List coordinates = geometry['coordinates'][0];
+        for (var coord in coordinates) {
+          points.add(LatLng(coord[1], coord[0]));
+        }
+      } else if (geometryType == 'MultiPolygon') {
+        final List coordinates = geometry['coordinates'][0][0];
+        for (var coord in coordinates) {
+          points.add(LatLng(coord[1], coord[0]));
+        }
+      }
+    }
+  }
+  return points;
+}
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -16,8 +46,10 @@ class _MapScreenState extends State<MapScreen> {
   final _searchController = TextEditingController();
   final _mapController = MapController();
   String _searchQuery = '';
-  static const _initialPosition = LatLng(-7.803, 111.996); // Posisi awal di sekitar Kediri
+  static const _initialPosition = LatLng(-7.803, 111.996);
   LatLng? _userLocation;
+
+  List<LatLng> _sukorameBoundary = [];
 
   @override
   void initState() {
@@ -27,12 +59,35 @@ class _MapScreenState extends State<MapScreen> {
         _searchQuery = _searchController.text;
       });
     });
+
+    _loadSukorameBoundaryFromGeoJson();
+  }
+
+  Future<void> _loadSukorameBoundaryFromGeoJson() async {
+    try {
+      final String jsonString =
+          await rootBundle.loadString('assets/sukorame_boundary.geojson');
+
+      final List<LatLng> points = await compute(_parseGeoJson, jsonString);
+
+      if (mounted) {
+        setState(() {
+          _sukorameBoundary = points;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat batas wilayah: $e')),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _mapController.dispose(); // Penting: Hapus controller saat widget tidak digunakan
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -45,27 +100,40 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: Stack(
         children: [
-
           FlutterMap(
             mapController: _mapController,
             options: const MapOptions(
               initialCenter: _initialPosition,
               initialZoom: 15.0,
+              
             ),
             children: [
- 
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.apk_sukorame',
               ),
-
+              if (_sukorameBoundary.isNotEmpty)
+                PolygonLayer(
+                  polygons: [
+                    Polygon(
+                      points: _sukorameBoundary,
+                      color: Colors.teal.withOpacity(0.2),
+                      borderColor: Colors.teal,
+                      borderStrokeWidth: 3.0,
+                      isFilled: true,
+                    ),
+                  ],
+                ),
               StreamBuilder<DatabaseEvent>(
                 stream: _dbRef.onValue,
                 builder: (context, snapshot) {
                   final List<Marker> buildingMarkers = [];
 
-                  if (snapshot.hasData && !snapshot.hasError && snapshot.data!.snapshot.value != null) {
-                    final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                  if (snapshot.hasData &&
+                      !snapshot.hasError &&
+                      snapshot.data!.snapshot.value != null) {
+                    final data =
+                        snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
                     data.forEach((key, value) {
                       final lat = value['latitude'] as double? ?? 0.0;
                       final lng = value['longitude'] as double? ?? 0.0;
@@ -76,7 +144,8 @@ class _MapScreenState extends State<MapScreen> {
                             height: 40.0,
                             point: LatLng(lat, lng),
                             child: Tooltip(
-                              message: value['nama_bangunan'] as String? ?? 'Tanpa Nama',
+                              message: value['nama_bangunan'] as String? ??
+                                  'Tanpa Nama',
                               child: const Icon(
                                 Icons.location_pin,
                                 color: Colors.red,
@@ -91,7 +160,9 @@ class _MapScreenState extends State<MapScreen> {
 
                   final filteredMarkers = buildingMarkers.where((marker) {
                     final tooltip = (marker.child as Tooltip).message ?? '';
-                    return tooltip.toLowerCase().contains(_searchQuery.toLowerCase());
+                    return tooltip
+                        .toLowerCase()
+                        .contains(_searchQuery.toLowerCase());
                   }).toList();
 
                   if (_searchQuery.isNotEmpty && filteredMarkers.length == 1) {
@@ -110,7 +181,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ],
           ),
-
           _buildSearchbar(),
           _buildMyLocationButton(),
         ],
@@ -125,36 +195,35 @@ class _MapScreenState extends State<MapScreen> {
       child: FloatingActionButton(
         backgroundColor: Colors.teal,
         onPressed: () async {
-          // 1. Minta izin lokasi
           LocationPermission permission = await Geolocator.checkPermission();
           if (permission == LocationPermission.denied) {
             permission = await Geolocator.requestPermission();
           }
 
-          if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+          if (permission == LocationPermission.denied ||
+              permission == LocationPermission.deniedForever) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Izin lokasi ditolak. Mohon aktifkan di pengaturan aplikasi.')),
+                const SnackBar(
+                    content: Text(
+                        'Izin lokasi ditolak. Mohon aktifkan di pengaturan aplikasi.')),
               );
             }
             return;
           }
 
-          // 2. Dapatkan lokasi saat ini
           try {
-            final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+            final pos = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.high);
             final newLocation = LatLng(pos.latitude, pos.longitude);
 
-            // 3. Update state dan gerakkan peta
             setState(() {
               _userLocation = newLocation;
             });
-            
-            // Pindahkan kamera setelah UI selesai di-render untuk memastikan stabilitas
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-                _mapController.move(newLocation, 17.0);
-            });
 
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _mapController.move(newLocation, 17.0);
+            });
           } catch (e) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +237,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Widget untuk Search Bar
   Widget _buildSearchbar() {
     return Positioned(
       top: 10,
@@ -180,7 +248,8 @@ class _MapScreenState extends State<MapScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
           boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
+            BoxShadow(
+                color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
           ],
         ),
         child: TextField(
@@ -195,7 +264,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Widget untuk penanda lokasi pengguna (titik biru)
   Marker _buildUserLocationMarker() {
     return Marker(
       width: 40,
@@ -211,7 +279,8 @@ class _MapScreenState extends State<MapScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: const [
-              BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+              BoxShadow(
+                  color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
             ],
           ),
         ),

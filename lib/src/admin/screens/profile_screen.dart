@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 import 'package:provider/provider.dart';
 import '../../services/theme_manager.dart';
-import '../../auth/auth_gate.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -310,56 +309,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Konfirmasi Log Out'),
-                  content: const Text(
-                    'Apakah Anda yakin ingin keluar dari aplikasi?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Batal'),
-                    ),
-                    TextButton(
-                      // ## PERBAIKAN LOGIKA LOGOUT DI SINI ##
-                      onPressed: () async {
-                        // 1. Lakukan sign out dari Firebase
-                        await FirebaseAuth.instance.signOut();
-
-                        // 2. Navigasi paksa kembali ke AuthGate dan hapus semua halaman sebelumnya
-                        if (mounted) {
-                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const AuthGate()),
-                            (Route<dynamic> route) => false,
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Log Out',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Keluar dari Akun'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[50],
-              foregroundColor: Colors.red,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
             ),
           ),
         ],

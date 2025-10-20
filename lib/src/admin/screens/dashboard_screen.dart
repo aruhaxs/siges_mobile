@@ -10,6 +10,7 @@ import 'package:apk_sukorame/src/admin/screens/gallery_screen.dart';
 import 'package:apk_sukorame/src/admin/screens/event_list_screen.dart';
 import 'package:apk_sukorame/src/admin/screens/add_admin_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../auth/auth_gate.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -165,8 +166,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.account_circle, size: 28),
-            onSelected: (value) async { // ## JADIKAN ASYNC ##
+            icon: const Icon(Icons.more_vert, size: 28),
+            onSelected: (value) async {
               if (value == 'profil') {
                 Navigator.push(
                   context,
@@ -175,7 +176,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 );
               } else if (value == 'add_admin') {
-                // ## PERUBAHAN LOGIKA NAVIGASI ##
                 final result = await Navigator.push<String>(
                   context,
                   MaterialPageRoute(builder: (context) => const AddAdminScreen()),
@@ -189,6 +189,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   );
                 }
+              } else if (value == 'logout') {
+                final bool? confirmLogout = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Konfirmasi Log Out'),
+                    content: const Text(
+                        'Apakah Anda yakin ingin keluar dari aplikasi?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text('Batal'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: const Text(
+                          'Log Out',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmLogout == true) {
+                  await FirebaseAuth.instance.signOut();
+                  if (mounted) {
+                    Navigator.of(context, rootNavigator: true)
+                        .pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const AuthGate()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
+                }
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -199,12 +232,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: Text('Profil'),
                 ),
               ),
-              // ## PERUBAHAN ITEM MENU ##
               const PopupMenuItem<String>(
                 value: 'add_admin',
                 child: ListTile(
                   leading: Icon(Icons.person_add_alt_1),
                   title: Text('Tambah Akun'),
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: ListTile(
+                  leading: Icon(Icons.logout, color: Colors.red),
+                  title: Text('Log Out', style: TextStyle(color: Colors.red)),
                 ),
               ),
             ],
@@ -243,7 +283,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const WebViewScreen(
-                      url: 'https://radarkediri.jawapos.com/tag/sukorame#google_vignette',
+                      url:
+                          'https://radarkediri.jawapos.com/tag/sukorame#google_vignette',
                       title: 'Berita Terkini',
                     ),
                   ),
@@ -376,7 +417,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasData &&
                         snapshot.data?.snapshot.value != null) {
-                      return Text('${(snapshot.data!.snapshot.value as Map).length}');
+                      return Text(
+                          '${(snapshot.data!.snapshot.value as Map).length}');
                     }
                     return const Text('0');
                   },
@@ -391,7 +433,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
                     if (snapshot.hasData &&
                         snapshot.data?.snapshot.value != null) {
-                      return Text('${(snapshot.data!.snapshot.value as Map).length}');
+                      return Text(
+                          '${(snapshot.data!.snapshot.value as Map).length}');
                     }
                     return const Text('0');
                   },
